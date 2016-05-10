@@ -31,7 +31,26 @@ module Xcodeproj
         end
 
         def excluded_from_sync?
-          project.group_exclusions.include?(hierarchy_path)
+          if project.group_inclusions.length > 0 
+            !included_parents? || project.group_exclusions.include?(hierarchy_path)
+          else
+            project.group_exclusions.include?(hierarchy_path)
+          end
+        end
+
+        def included_parents?
+          trimmed = hierarchy_path
+          index = trimmed.length
+          while index != nil
+            trimmed = trimmed[0...index]
+            if project.group_inclusions.include?(trimmed)
+              #puts("included_parents? #{hierarchy_path} true")
+              return true
+            end
+            index = trimmed.rindex("/")
+          end
+          #puts("included_parents? #{hierarchy_path} false")
+          return false
         end
 
         def sort_by_name

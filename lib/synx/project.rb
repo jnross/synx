@@ -10,7 +10,7 @@ module Synx
     DEFAULT_EXCLUSIONS = %W(/Libraries /Frameworks /Products /Pods)
     private_constant :DEFAULT_EXCLUSIONS
 
-    attr_accessor :delayed_groups_set_path, :group_exclusions, :prune, :sort_by_name
+    attr_accessor :delayed_groups_set_path, :group_exclusions, :group_inclusions, :prune, :sort_by_name
 
     def sync(options={})
       set_options(options)
@@ -47,8 +47,10 @@ module Synx
       else
         self.group_exclusions = DEFAULT_EXCLUSIONS
       end
+      self.group_inclusions = []
 
       self.group_exclusions |= options[:group_exclusions] if options[:group_exclusions]
+      self.group_inclusions |= options[:group_inclusions] if options[:group_inclusions]
       self.sort_by_name = !options[:no_sort_by_name]
 
       Synx::Tabber.options = options
@@ -95,6 +97,7 @@ module Synx
     end
 
     def group_exclusions=(new_exclusions)
+      puts("assigning group_exclusions")
       @group_exclusions = new_exclusions.map do |exclusion|
         # Group paths always start with a '/', so put one there if it isn't already.
         exclusion = "/" + exclusion unless exclusion[0] == "/"
@@ -108,6 +111,21 @@ module Synx
           end
         end
         exclusion
+      end
+    end
+
+    def group_inclusions=(new_inclusions)
+      puts("assigning group_inclusions")
+      @group_inclusions = new_inclusions.map do |inclusion|
+        # Group paths always start with a '/', so put one there if it isn't already.
+        inclusion = "/" + inclusion unless inclusion[0] == "/"
+        # remove leading '/' for this check
+        inclusionCopy = inclusion.dup
+        inclusionCopy[0] = ''
+        unless self[inclusionCopy]
+          raise IndexError, "No group #{inclusionCopy} exists"
+        end
+        inclusion
       end
     end
 
